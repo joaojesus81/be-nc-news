@@ -8,6 +8,9 @@ exports.up = function (knex) {
       .references("article_id")
       .inTable("articles");
     commentsTable.integer("votes").defaultsTo(0);
+    commentsTable
+      .timestamp("created_at", { useTz: true })
+      .defaultTo(knex.fn.now());
     commentsTable.string("body");
   });
 };

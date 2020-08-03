@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "setup-dbs": "psql -f ./db/setup.sql",
-    "migrate-make": "knex migrate:make",
-    "seed": "knex seed:run",
+    "migrate-make": "NODE_ENV=test knex migrate:make",
+    "seed": "NODE_ENV=test knex seed:run",
     "test": "jest --watch /tests",
-    "migrate-latest": "knex migrate:latest",
-    "migrate-rollback": "knex migrate:rollback"
+    "migrate-latest": "NODE_ENV=test knex migrate:latest",
+    "migrate-rollback": "NODE_ENV=test knex migrate:rollback"
   },
   "repository": {
     "type": "git",
