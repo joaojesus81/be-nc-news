@@ -7,7 +7,7 @@
     "setup-dbs": "psql -f ./db/setup.sql",
     "migrate-make": "NODE_ENV=test knex migrate:make",
     "seed": "NODE_ENV=test knex seed:run",
-    "test": "jest --watch /tests",
+    "test": "npm run seed && jest --verbose=false ./__tests__/api.test.js",
     "migrate-latest": "NODE_ENV=test knex migrate:latest",
     "migrate-rollback": "NODE_ENV=test knex migrate:rollback"
   },
@@ -27,6 +27,8 @@
     "pg": "^8.3.0"
   },
   "devDependencies": {
-    "jest": "^26.2.2"
+    "express": "^4.17.1",
+    "jest": "^26.2.2",
+    "supertest": "^4.0.2"
   }
 }
