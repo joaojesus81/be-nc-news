@@ -3,8 +3,9 @@ const {
   getAllUsers,
   getAUserByUsername,
 } = require("../controllers/users.controller");
+const { errors405s } = require("../errors");
 
-usersRouter.get("/", getAllUsers);
-usersRouter.get("/:username", getAUserByUsername);
+usersRouter.route("/").get(getAllUsers).all(errors405s);
+usersRouter.route("/:username").get(getAUserByUsername).all(errors405s);
 
 module.exports = usersRouter;

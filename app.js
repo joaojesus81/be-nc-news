@@ -1,10 +1,11 @@
 const express = require("express");
 const app = express();
 const apiRouter = require("./api/routers/api.router");
-const { customError, catchAll } = require("./api/errors");
+const { customError, catchAll, PSQLerrors } = require("./api/errors");
 
 app.use(express.json());
 app.use("/api", apiRouter);
+app.use(PSQLerrors);
 app.use(customError);
 app.use(catchAll);
 app.all("*", (req, res, next) => {

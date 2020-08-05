@@ -3,12 +3,10 @@ const request = require("supertest");
 const connection = require("../db/connection");
 
 function requestApp(method, path, status = 200, sendObj) {
-  if (method === "get") {
-    return request(app).get(`/api/${path}`).expect(status);
-  } else if (method === "post") {
-    return request(app).post(`/api/${path}`).expect(status);
-  } else if (method === "patch") {
-    return request(app).patch(`/api/${path}`).send(sendObj).expect(status);
+  if (method === "get" || method === "del") {
+    return request(app)[method](`/api/${path}`).expect(status);
+  } else {
+    return request(app)[method](`/api/${path}`).send(sendObj).expect(status);
   }
 }
 
@@ -46,6 +44,15 @@ describe("/api", () => {
     });
   });
   describe("/api/users", () => {
+    it("INVALID METHODS /api/users", () => {
+      const invalidMethods = ["put", "post", "patch"];
+      const promises = invalidMethods.map((method) => {
+        return requestApp(method, "users", 405).then(({ body: { msg } }) => {
+          expect(msg).toBe("Method not allowed.");
+        });
+      });
+      return Promise.all(promises);
+    });
     it("GET 200 - Expect 200 from the server", () => {
       return request(app).get("/api/users").expect(200);
     });
@@ -88,6 +95,17 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
+    it("INVALID METHODS /api/articles/:article_id", () => {
+      const invalidMethods = ["put"];
+      const promises = invalidMethods.map((method) => {
+        return requestApp(method, "articles/1", 405).then(
+          ({ body: { msg } }) => {
+            expect(msg).toBe("Method not allowed.");
+          }
+        );
+      });
+      return Promise.all(promises);
+    });
     it("GET 200 - Responds with 200 from the server", () => {
       return requestApp("get", "articles", 200);
     });
@@ -176,6 +194,38 @@ describe("/api", () => {
           );
         });
     });
-    it("PATCH 400 - Responds with an error if the input is incorrect", () => {});
+    it("PATCH 400 - Responds with an error if the input is incorrect", () => {
+      const sendObj = { inc_votes: 1 };
+      return requestApp("patch", "articles/b", 400, sendObj).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Invalid input sintax.");
+        }
+      );
+    });
+    it("PATCH 400 - Responds with an error if the req.body is inadequate", () => {
+      const sendObj = { in_votes: "b" };
+      return requestApp("patch", "articles/1", 400, sendObj).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Incorrect value in object.");
+        }
+      );
+    });
+    it("POST 201 - Responds with 201 from server with post request", () => {
+      const sendComment = { username: "joao", body: "this is my comment" };
+      return requestApp("post", "articles/1/comments", 201, sendComment);
+    });
+    it("POST 201 - Responds with 201 from server and returns the created comment", () => {
+      const sendComment = {
+        username: "butter_bridge",
+        body: "this is my comment",
+      };
+      return requestApp("post", "articles/1/comments", 201, sendComment).then(
+        ({ body }) => {
+          console.log(body);
+          expect(body.comment).toEqual(expect.any(Array));
+          expect(body.comment).toHaveProperty("body");
+        }
+      );
+    });
   });
 });
