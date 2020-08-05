@@ -211,7 +211,10 @@ describe("/api", () => {
       );
     });
     it("POST 201 - Responds with 201 from server with post request", () => {
-      const sendComment = { username: "joao", body: "this is my comment" };
+      const sendComment = {
+        username: "butter_bridge",
+        body: "this is my comment",
+      };
       return requestApp("post", "articles/1/comments", 201, sendComment);
     });
     it("POST 201 - Responds with 201 from server and returns the created comment", () => {
@@ -221,11 +224,66 @@ describe("/api", () => {
       };
       return requestApp("post", "articles/1/comments", 201, sendComment).then(
         ({ body }) => {
-          console.log(body);
           expect(body.comment).toEqual(expect.any(Array));
-          expect(body.comment).toHaveProperty("body");
+          expect(body.comment[0]).toHaveProperty("body");
         }
       );
+    });
+    it("POST 400 - Responds with 400 with incorrect username", () => {
+      const sendComment = {
+        username: "toffee",
+        body: "this is my comment",
+      };
+      return requestApp("post", "articles/1/comments", 400, sendComment).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("That user doesn't exist.");
+        }
+      );
+    });
+    it("POST 400 - Responds with 400 with no body", () => {
+      const sendComment = {
+        username: "butter_bridge",
+        body: "",
+      };
+      return requestApp("post", "articles/1/comments", 400, sendComment).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Please insert body to comment.");
+        }
+      );
+    });
+    it("GET 200 - Responds with 200 for the comments in an article", () => {
+      return requestApp("get", "articles/1/comments", 200);
+    });
+    it("GET 200 - Responds with all comments from an article", () => {
+      return requestApp("get", "articles/1/comments", 200).then(({ body }) => {
+        expect(body.comments).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+            }),
+          ])
+        );
+      });
+    });
+    it("GET 400 - Incorrect article id", () => {
+      return requestApp("get", "articles/999/comments", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Could not find that article");
+        }
+      );
+    });
+    it.only("GET 200 - Return comments sorted by created_at", () => {
+      return requestApp(
+        "get",
+        "articles/1/comments?sort_by=created_at",
+        200
+      ).then(({ body }) => {
+        expect(body.comments).toBeSortedBy("created_at");
+      });
     });
   });
 });

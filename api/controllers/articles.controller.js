@@ -3,6 +3,7 @@ const {
   fetchAnArticleById,
   editAnArticleVotes,
   postCommentByArticleId,
+  fetchAllCommentsOfArticleId,
 } = require("../models/articles.model");
 
 exports.getAllArticles = (req, res, next) => {
@@ -47,7 +48,18 @@ exports.postACommentByArticleId = (req, res, next) => {
       res.status(201).send({ comment });
     })
     .catch((err) => {
-      console.log(err);
+      next(err);
+    });
+};
+
+exports.getAllCommentsOfArticleId = (req, res, next) => {
+  const { article_id } = req.params;
+  const queryObj = req.query;
+  fetchAllCommentsOfArticleId(article_id, queryObj)
+    .then((comments) => {
+      res.status(200).send({ comments });
+    })
+    .catch((err) => {
       next(err);
     });
 };

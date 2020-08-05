@@ -11,7 +11,7 @@ exports.up = function (knex) {
     commentsTable
       .timestamp("created_at", { useTz: true })
       .defaultTo(knex.fn.now());
-    commentsTable.string("body");
+    commentsTable.string("body").notNullable();
   });
 };
 

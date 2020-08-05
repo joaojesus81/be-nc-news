@@ -4,6 +4,7 @@ const {
   getAnArticleById,
   patchAnArticleVotes,
   postACommentByArticleId,
+  getAllCommentsOfArticleId,
 } = require("../controllers/articles.controller");
 const { errors405s } = require("../errors");
 
@@ -13,6 +14,10 @@ articlesRouter
   .get(getAnArticleById)
   .patch(patchAnArticleVotes)
   .all(errors405s);
-articlesRouter.route("/:article_id/comments").post(postACommentByArticleId);
+articlesRouter
+  .route("/:article_id/comments")
+  .get(getAllCommentsOfArticleId)
+  .post(postACommentByArticleId)
+  .all(errors405s);
 
 module.exports = articlesRouter;

@@ -1,5 +1,4 @@
 const connection = require("../../db/connection");
-const { into, returning } = require("../../db/connection");
 
 exports.fetchAllArticles = () => {
   return connection
@@ -54,11 +53,41 @@ exports.editAnArticleVotes = (article_id, { inc_votes }) => {
 };
 
 exports.postCommentByArticleId = (article_id, { username, body }) => {
-  return connection("comments")
-    .insert({
-      author: username,
-      article_id: article_id,
-      body: body,
+  if (body.length < 1) {
+    return Promise.reject({
+      status: 400,
+      msg: "Please insert body to comment.",
+    });
+  } else {
+    return connection("comments")
+      .insert({
+        author: username,
+        article_id: article_id,
+        body: body,
+      })
+      .returning("*");
+  }
+};
+
+exports.fetchAllCommentsOfArticleId = (
+  article_id,
+  { sort_by = "created_at" }
+) => {
+  return connection
+    .select()
+    .from("comments")
+    .where("article_id", article_id)
+    .modify((query) => {
+      return query.orderBy(sort_by);
     })
-    .returning("*");
+    .then((response) => {
+      if (response.length < 1) {
+        return Promise.reject({
+          status: 400,
+          msg: "Could not find that article",
+        });
+      } else {
+        return response;
+      }
+    });
 };
