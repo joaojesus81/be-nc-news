@@ -1,12 +1,15 @@
 const connection = require("../../db/connection");
 
-exports.fetchAllArticles = () => {
+exports.fetchAllArticles = ({ sort_by = "created_at" }) => {
   return connection
     .select("articles.*")
     .from("articles")
     .leftJoin("comments", "articles.article_id", "comments.article_id")
     .groupBy("articles.article_id")
-    .count("comments.article_id", { as: "comment_count" });
+    .count("comments.article_id", { as: "comment_count" })
+    .modify((query) => {
+      return query.orderBy(sort_by, "desc");
+    });
 };
 
 exports.fetchAnArticleById = (article_id) => {
@@ -71,23 +74,30 @@ exports.postCommentByArticleId = (article_id, { username, body }) => {
 
 exports.fetchAllCommentsOfArticleId = (
   article_id,
-  { sort_by = "created_at" }
+  { sort_by = "created_at", order = "desc" }
 ) => {
-  return connection
-    .select()
-    .from("comments")
-    .where("article_id", article_id)
-    .modify((query) => {
-      return query.orderBy(sort_by);
-    })
-    .then((response) => {
-      if (response.length < 1) {
-        return Promise.reject({
-          status: 400,
-          msg: "Could not find that article",
-        });
-      } else {
-        return response;
-      }
+  if (order === "desc" || order === "asc") {
+    return connection
+      .select()
+      .from("comments")
+      .where("article_id", article_id)
+      .modify((query) => {
+        return query.orderBy(sort_by, order);
+      })
+      .then((response) => {
+        if (response.length < 1) {
+          return Promise.reject({
+            status: 400,
+            msg: "Could not find that article",
+          });
+        } else {
+          return response;
+        }
+      });
+  } else {
+    return Promise.reject({
+      status: 400,
+      msg: "Please select either asc or desc for directio.",
     });
+  }
 };

@@ -7,7 +7,8 @@ const {
 } = require("../models/articles.model");
 
 exports.getAllArticles = (req, res, next) => {
-  fetchAllArticles()
+  const queryObj = req.query;
+  fetchAllArticles(queryObj)
     .then((articles) => {
       res.status(200).send({ articles });
     })

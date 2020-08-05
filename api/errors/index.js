@@ -9,6 +9,8 @@ exports.PSQLerrors = (err, req, res, next) => {
     res.status(400).send({ msg: "Invalid input sintax." });
   } else if (err.code === "23503") {
     res.status(400).send({ msg: "That user doesn't exist." });
+  } else if (err.code === "42703") {
+    res.status(400).send({ msg: "That option is not available" });
   } else {
     next(err);
   }

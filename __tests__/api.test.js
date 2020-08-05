@@ -127,6 +127,12 @@ describe("/api", () => {
         );
       });
     });
+    it("GET 200 - Responds sorted by default created_at", () => {
+      return requestApp("get", "articles", 200).then(({ body }) => {
+        console.log(body.articles);
+        expect(body.articles).toBeSortedBy("created_at", { descending: true });
+      });
+    });
     it("GET 200 - Responds with one article", () => {
       return requestApp("get", "articles/1", 200).then(({ body }) => {
         expect(body.article.length).toBe(1);
@@ -276,14 +282,59 @@ describe("/api", () => {
         }
       );
     });
-    it.only("GET 200 - Return comments sorted by created_at", () => {
+    it("GET 200 - Return comments sorted by created_at", () => {
       return requestApp(
         "get",
         "articles/1/comments?sort_by=created_at",
         200
       ).then(({ body }) => {
-        expect(body.comments).toBeSortedBy("created_at");
+        expect(body.comments).toBeSortedBy("created_at", {
+          descending: true,
+        });
       });
+    });
+    it("GET 200 - Return comments sorted by comment_id", () => {
+      return requestApp(
+        "get",
+        "articles/1/comments?sort_by=comment_id",
+        200
+      ).then(({ body }) => {
+        expect(body.comments).toBeSortedBy("comment_id", {
+          descending: true,
+        });
+      });
+    });
+    it("GET 400 - Return error if the sort_by doesnt exist", () => {
+      return requestApp(
+        "get",
+        "articles/1/comments?sort_by=potatoes",
+        400
+      ).then(({ body: { msg } }) => {
+        expect(msg).toBe("That option is not available");
+      });
+    });
+    it("GET 200 - Return comments in the default direction of sort", () => {
+      return requestApp("get", "articles/1/comments", 200).then(({ body }) => {
+        expect(body.comments).toBeSortedBy("created_at", {
+          descending: true,
+        });
+      });
+    });
+    it("GET 200 - Return comments in selected direction of sort", () => {
+      return requestApp("get", "articles/1/comments?order=asc", 200).then(
+        ({ body }) => {
+          expect(body.comments).toBeSortedBy("created_at", {
+            ascending: true,
+          });
+        }
+      );
+    });
+    it("GET 400 - Return error with incorect direction", () => {
+      return requestApp("get", "articles/1/comments?order=north", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Please select either asc or desc for directio.");
+        }
+      );
     });
   });
 });
