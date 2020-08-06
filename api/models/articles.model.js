@@ -1,15 +1,90 @@
 const connection = require("../../db/connection");
 
-exports.fetchAllArticles = ({ sort_by = "created_at" }) => {
-  return connection
-    .select("articles.*")
-    .from("articles")
-    .leftJoin("comments", "articles.article_id", "comments.article_id")
-    .groupBy("articles.article_id")
-    .count("comments.article_id", { as: "comment_count" })
-    .modify((query) => {
-      return query.orderBy(sort_by, "desc");
+const checkExistingUsers = connection
+  .select("username")
+  .from("users")
+  .then((users) => {
+    const existingUsers = users.map(({ username }) => {
+      return username;
     });
+    return existingUsers;
+  });
+
+const checkExistingTopics = connection
+  .select("slug")
+  .from("topics")
+  .then((topics) => {
+    const existingTopics = topics.map(({ slug }) => {
+      return slug;
+    });
+    return existingTopics;
+  });
+
+exports.fetchAllArticles = ({
+  sort_by = "created_at",
+  order = "desc",
+  author,
+  topic,
+}) => {
+  return Promise.all([checkExistingUsers, checkExistingTopics]).then(
+    ([users, topics]) => {
+      if (
+        (users.includes(author) || author === undefined) &&
+        (topics.includes(topic) || topic === undefined)
+      ) {
+        if (order === "desc" || order === "asc") {
+          return connection
+            .select("articles.*")
+            .from("articles")
+            .leftJoin("comments", "articles.article_id", "comments.article_id")
+            .groupBy("articles.article_id")
+            .count("comments.article_id", { as: "comment_count" })
+            .orderBy(sort_by, order)
+            .modify((query) => {
+              if (author) query.where("articles.author", author);
+              if (topic) query.where("articles.topic", topic);
+            });
+        } else {
+          return Promise.reject({
+            status: 400,
+            msg: "Please select either asc or desc for direction.",
+          });
+        }
+      } else {
+        return Promise.reject({
+          status: 400,
+          msg: "No such author or topic available.",
+        });
+      }
+    }
+  );
+  return checkExistingUsers().then((existingUsers) => {
+    if (existingUsers.includes(author) || author === undefined) {
+      if (order === "desc" || order === "asc") {
+        return connection
+          .select("articles.*")
+          .from("articles")
+          .leftJoin("comments", "articles.article_id", "comments.article_id")
+          .groupBy("articles.article_id")
+          .count("comments.article_id", { as: "comment_count" })
+          .orderBy(sort_by, order)
+          .modify((query) => {
+            if (author) query.where("articles.author", author);
+            if (topic) query.where("articles.topic", topic);
+          });
+      } else {
+        return Promise.reject({
+          status: 400,
+          msg: "Please select either asc or desc for direction.",
+        });
+      }
+    } else {
+      return Promise.reject({
+        status: 400,
+        msg: "No such author available.",
+      });
+    }
+  });
 };
 
 exports.fetchAnArticleById = (article_id) => {
@@ -97,7 +172,7 @@ exports.fetchAllCommentsOfArticleId = (
   } else {
     return Promise.reject({
       status: 400,
-      msg: "Please select either asc or desc for directio.",
+      msg: "Please select either asc or desc for direction.",
     });
   }
 };

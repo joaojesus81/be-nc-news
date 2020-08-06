@@ -127,11 +127,93 @@ describe("/api", () => {
         );
       });
     });
-    it("GET 200 - Responds sorted by default created_at", () => {
+    it("GET 200 - Responds with articles sorted by default created_at", () => {
       return requestApp("get", "articles", 200).then(({ body }) => {
-        console.log(body.articles);
         expect(body.articles).toBeSortedBy("created_at", { descending: true });
       });
+    });
+    it("GET 200 - Responds with articles sorted by article_id", () => {
+      return requestApp("get", "articles?sort_by=article_id", 200).then(
+        ({ body }) => {
+          expect(body.articles).toBeSortedBy("article_id", {
+            descending: true,
+          });
+        }
+      );
+    });
+    it("GET 400 - Responds with error if sorted by non existing column", () => {
+      return requestApp("get", "articles?sort_by=potatoes", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("That option is not available");
+        }
+      );
+    });
+    it("GET 200 - Responds with articles sorted in the default direction", () => {
+      return requestApp("get", "articles", 200).then(({ body }) => {
+        expect(body.articles).toBeSortedBy("created_at", { descending: true });
+      });
+    });
+    it("GET 200 - Responds with articles sorted in the ascending direction", () => {
+      return requestApp("get", "articles?order=asc", 200).then(({ body }) => {
+        expect(body.articles).toBeSortedBy("created_at", { ascending: true });
+      });
+    });
+    it("GET 400 - Reponds with error if incorrect direction.", () => {
+      return requestApp("get", "articles?order=north", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Please select either asc or desc for direction.");
+        }
+      );
+    });
+    it("GET 200 - Responds with the articles of one specific user", () => {
+      return requestApp("get", "articles?author=butter_bridge", 200).then(
+        ({ body: { articles } }) => {
+          articles.forEach((article) => {
+            expect(article).toEqual(
+              expect.objectContaining({ author: "butter_bridge" })
+            );
+          });
+        }
+      );
+    });
+    it("GET 200 - Responds with no articles of a specific user", () => {
+      return requestApp("get", "articles?author=lurker", 200).then(
+        ({ body: { articles } }) => {
+          expect(articles.length).toBe(0);
+        }
+      );
+    });
+    it("GET 400 - Responds with error if specific user doesnt exist", () => {
+      return requestApp("get", "articles?author=potato", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("No such author or topic available.");
+        }
+      );
+    });
+    it("GET 200 - Responds with the articles of one specific topic", () => {
+      return requestApp("get", "articles?topic=mitch", 200).then(
+        ({ body: { articles } }) => {
+          articles.forEach((article) => {
+            expect(article).toEqual(
+              expect.objectContaining({ topic: "mitch" })
+            );
+          });
+        }
+      );
+    });
+    it("GET 200 - Reponds with no articles of a specific topic", () => {
+      return requestApp("get", "articles?topic=paper", 200).then(
+        ({ body: { articles } }) => {
+          expect(articles.length).toBe(0);
+        }
+      );
+    });
+    it("GET 400 - Responds with error if topic doesnt exist", () => {
+      return requestApp("get", "articles?topic=potatoe", 400).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("No such author or topic available.");
+        }
+      );
     });
     it("GET 200 - Responds with one article", () => {
       return requestApp("get", "articles/1", 200).then(({ body }) => {
@@ -332,7 +414,7 @@ describe("/api", () => {
     it("GET 400 - Return error with incorect direction", () => {
       return requestApp("get", "articles/1/comments?order=north", 400).then(
         ({ body: { msg } }) => {
-          expect(msg).toBe("Please select either asc or desc for directio.");
+          expect(msg).toBe("Please select either asc or desc for direction.");
         }
       );
     });
