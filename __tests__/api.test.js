@@ -419,4 +419,56 @@ describe("/api", () => {
       );
     });
   });
+  describe.only("/api/comments", () => {
+    it("INVALID METHODS /api/comments", () => {
+      const invalidMethods = ["put", "post"];
+      const promises = invalidMethods.map((method) => {
+        return requestApp(method, "comments/1", 405).then(
+          ({ body: { msg } }) => {
+            expect(msg).toBe("Method not allowed.");
+          }
+        );
+      });
+      return Promise.all(promises);
+    });
+    it("GET 200 - Responds ok from server", () => {
+      const sendObj = {};
+      return requestApp("patch", "comments/1", 200, sendObj);
+    });
+    it("GET 200 - Responds with the updated comment", () => {
+      return requestApp("get", "comments/1", 200).then(
+        ({ body: { comment } }) => {
+          const oldVote = comment[0].votes;
+          const sendObj = { inc_votes: -50 };
+          const newVote = oldVote + sendObj.inc_votes;
+          return requestApp("patch", "comments/1", 200, sendObj).then(
+            ({ body: { comment } }) => {
+              expect(comment.length).toBe(1);
+              expect(comment).toEqual(
+                expect.arrayContaining([
+                  expect.objectContaining({ comment_id: 1, votes: newVote }),
+                ])
+              );
+            }
+          );
+        }
+      );
+    });
+    it("GET 400 - Errors out if id doesnt exist", () => {
+      const sendObj = { inc_votes: 10 };
+      return requestApp("patch", "comments/999", 400, sendObj).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("No such comment.");
+        }
+      );
+    });
+    it("GET 400 - Errors out if not a number", () => {
+      const sendObj = { inc_votes: "b" };
+      return requestApp("patch", "comments/1", 400, sendObj).then(
+        ({ body: { msg } }) => {
+          expect(msg).toBe("Invalid input sintax.");
+        }
+      );
+    });
+  });
 });
