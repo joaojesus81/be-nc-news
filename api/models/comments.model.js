@@ -17,3 +17,7 @@ exports.editAComment = (comment_id, { inc_votes }) => {
       }
     });
 };
+
+exports.deleteAComment = (comment_id) => {
+  return connection("comments").where({ comment_id }).del();
+};

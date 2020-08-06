@@ -1,4 +1,8 @@
-const { editAComment, fetchAComment } = require("../models/comments.model");
+const {
+  editAComment,
+  fetchAComment,
+  deleteAComment,
+} = require("../models/comments.model");
 
 exports.patchAComment = (req, res, next) => {
   const { comment_id } = req.params;
@@ -21,4 +25,11 @@ exports.getAComment = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
+};
+
+exports.deleteAComment = (req, res, next) => {
+  const { comment_id } = req.params;
+  deleteAComment(comment_id).then(() => {
+    res.sendStatus(204);
+  });
 };

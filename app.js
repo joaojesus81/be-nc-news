@@ -8,6 +8,7 @@ app.use("/api", apiRouter);
 app.use(PSQLerrors);
 app.use(customError);
 app.use(catchAll);
+
 app.all("*", (req, res, next) => {
   res.status(400).send({ msg: "Path does not exist." });
 });

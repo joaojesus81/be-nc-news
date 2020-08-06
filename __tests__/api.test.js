@@ -95,17 +95,6 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
-    it("INVALID METHODS /api/articles/:article_id", () => {
-      const invalidMethods = ["put"];
-      const promises = invalidMethods.map((method) => {
-        return requestApp(method, "articles/1", 405).then(
-          ({ body: { msg } }) => {
-            expect(msg).toBe("Method not allowed.");
-          }
-        );
-      });
-      return Promise.all(promises);
-    });
     it("GET 200 - Responds with 200 from the server", () => {
       return requestApp("get", "articles", 200);
     });
@@ -132,30 +121,18 @@ describe("/api", () => {
         expect(body.articles).toBeSortedBy("created_at", { descending: true });
       });
     });
-    it("GET 200 - Responds with articles sorted by article_id", () => {
-      return requestApp("get", "articles?sort_by=article_id", 200).then(
-        ({ body }) => {
-          expect(body.articles).toBeSortedBy("article_id", {
-            descending: true,
-          });
-        }
-      );
-    });
-    it("GET 400 - Responds with error if sorted by non existing column", () => {
-      return requestApp("get", "articles?sort_by=potatoes", 400).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("That option is not available");
-        }
-      );
-    });
     it("GET 200 - Responds with articles sorted in the default direction", () => {
       return requestApp("get", "articles", 200).then(({ body }) => {
-        expect(body.articles).toBeSortedBy("created_at", { descending: true });
+        expect(body.articles).toBeSortedBy("created_at", {
+          descending: true,
+        });
       });
     });
     it("GET 200 - Responds with articles sorted in the ascending direction", () => {
       return requestApp("get", "articles?order=asc", 200).then(({ body }) => {
-        expect(body.articles).toBeSortedBy("created_at", { ascending: true });
+        expect(body.articles).toBeSortedBy("created_at", {
+          ascending: true,
+        });
       });
     });
     it("GET 400 - Reponds with error if incorrect direction.", () => {
@@ -215,211 +192,262 @@ describe("/api", () => {
         }
       );
     });
-    it("GET 200 - Responds with one article", () => {
-      return requestApp("get", "articles/1", 200).then(({ body }) => {
-        expect(body.article.length).toBe(1);
-        expect(body.article).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              article_id: expect.any(Number),
-              title: expect.any(String),
-              body: expect.any(String),
-              votes: expect.any(Number),
-              topic: expect.any(String),
-              author: expect.any(String),
-              created_at: expect.any(String),
-              comment_count: expect.any(String),
-            }),
-          ])
-        );
-      });
-    });
-    it("GET 400 - Respondes with error if article doesnt exist", () => {
-      return requestApp("get", "articles/999", 400).then(({ body }) => {
-        expect(body.msg).toBe("The selected article does not exist.");
-      });
-    });
-    it("PATCH 200 - Responds with 200 to a patch request", () => {
-      return requestApp("patch", "articles/1", 200, {
-        inc_votes: 1,
-      });
-    });
-    it("PATCH 200 - Responds with the correct article and updated vote count if provided with a positive number", () => {
-      return requestApp("get", "articles/1", 200)
-        .then(({ body }) => {
-          const previousVotes = body.article[0].votes;
-          return previousVotes;
-        })
-        .then((previousVotes) => {
-          const sendObj = {
-            inc_votes: 1,
-          };
-          return requestApp("patch", "articles/1", 200, sendObj).then(
-            ({ body }) => {
-              const newVotes = previousVotes + sendObj.inc_votes;
-              expect(body.article.length).toBe(1);
-              expect(body.article[0].votes).toBe(newVotes);
+    describe("/api/articles/:article_id", () => {
+      it("INVALID METHODS /api/articles/:article_id", () => {
+        const invalidMethods = ["put"];
+        const promises = invalidMethods.map((method) => {
+          return requestApp(method, "articles/1", 405).then(
+            ({ body: { msg } }) => {
+              expect(msg).toBe("Method not allowed.");
             }
           );
         });
-    });
-    it("PATCH 200 - Responds with the correct article and updated vote count if provided with a negative number", () => {
-      return requestApp("get", "articles/1", 200)
-        .then(({ body }) => {
-          const previousVotes = body.article[0].votes;
-          return previousVotes;
-        })
-        .then((previousVotes) => {
-          const sendObj = {
-            inc_votes: -1000,
-          };
-          return requestApp("patch", "articles/1", 200, sendObj).then(
-            ({ body }) => {
-              const newVotes = previousVotes + sendObj.inc_votes;
-              expect(body.article.length).toBe(1);
-              expect(body.article[0].votes).toBe(newVotes);
-            }
-          );
-        });
-    });
-    it("PATCH 400 - Responds with an error if the input is incorrect", () => {
-      const sendObj = { inc_votes: 1 };
-      return requestApp("patch", "articles/b", 400, sendObj).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("Invalid input sintax.");
-        }
-      );
-    });
-    it("PATCH 400 - Responds with an error if the req.body is inadequate", () => {
-      const sendObj = { in_votes: "b" };
-      return requestApp("patch", "articles/1", 400, sendObj).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("Incorrect value in object.");
-        }
-      );
-    });
-    it("POST 201 - Responds with 201 from server with post request", () => {
-      const sendComment = {
-        username: "butter_bridge",
-        body: "this is my comment",
-      };
-      return requestApp("post", "articles/1/comments", 201, sendComment);
-    });
-    it("POST 201 - Responds with 201 from server and returns the created comment", () => {
-      const sendComment = {
-        username: "butter_bridge",
-        body: "this is my comment",
-      };
-      return requestApp("post", "articles/1/comments", 201, sendComment).then(
-        ({ body }) => {
-          expect(body.comment).toEqual(expect.any(Array));
-          expect(body.comment[0]).toHaveProperty("body");
-        }
-      );
-    });
-    it("POST 400 - Responds with 400 with incorrect username", () => {
-      const sendComment = {
-        username: "toffee",
-        body: "this is my comment",
-      };
-      return requestApp("post", "articles/1/comments", 400, sendComment).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("That user doesn't exist.");
-        }
-      );
-    });
-    it("POST 400 - Responds with 400 with no body", () => {
-      const sendComment = {
-        username: "butter_bridge",
-        body: "",
-      };
-      return requestApp("post", "articles/1/comments", 400, sendComment).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("Please insert body to comment.");
-        }
-      );
-    });
-    it("GET 200 - Responds with 200 for the comments in an article", () => {
-      return requestApp("get", "articles/1/comments", 200);
-    });
-    it("GET 200 - Responds with all comments from an article", () => {
-      return requestApp("get", "articles/1/comments", 200).then(({ body }) => {
-        expect(body.comments).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              comment_id: expect.any(Number),
-              votes: expect.any(Number),
-              created_at: expect.any(String),
-              author: expect.any(String),
-              body: expect.any(String),
-            }),
-          ])
+        return Promise.all(promises);
+      });
+      it("GET 200 - Responds with articles sorted by article_id", () => {
+        return requestApp("get", "articles?sort_by=article_id", 200).then(
+          ({ body }) => {
+            expect(body.articles).toBeSortedBy("article_id", {
+              descending: true,
+            });
+          }
         );
       });
-    });
-    it("GET 400 - Incorrect article id", () => {
-      return requestApp("get", "articles/999/comments", 400).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("Could not find that article");
-        }
-      );
-    });
-    it("GET 200 - Return comments sorted by created_at", () => {
-      return requestApp(
-        "get",
-        "articles/1/comments?sort_by=created_at",
-        200
-      ).then(({ body }) => {
-        expect(body.comments).toBeSortedBy("created_at", {
-          descending: true,
+      it("GET 400 - Responds with error if sorted by non existing column", () => {
+        return requestApp("get", "articles?sort_by=potatoes", 400).then(
+          ({ body: { msg } }) => {
+            expect(msg).toBe("That option is not available");
+          }
+        );
+      });
+      it("GET 200 - Responds with one article", () => {
+        return requestApp("get", "articles/1", 200).then(({ body }) => {
+          expect(body.article.length).toBe(1);
+          expect(body.article).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                article_id: expect.any(Number),
+                title: expect.any(String),
+                body: expect.any(String),
+                votes: expect.any(Number),
+                topic: expect.any(String),
+                author: expect.any(String),
+                created_at: expect.any(String),
+                comment_count: expect.any(String),
+              }),
+            ])
+          );
         });
       });
-    });
-    it("GET 200 - Return comments sorted by comment_id", () => {
-      return requestApp(
-        "get",
-        "articles/1/comments?sort_by=comment_id",
-        200
-      ).then(({ body }) => {
-        expect(body.comments).toBeSortedBy("comment_id", {
-          descending: true,
+      it("GET 400 - Responds with error if article doesnt exist", () => {
+        return requestApp("get", "articles/999", 400).then(({ body }) => {
+          expect(body.msg).toBe("The selected article does not exist.");
         });
       });
-    });
-    it("GET 400 - Return error if the sort_by doesnt exist", () => {
-      return requestApp(
-        "get",
-        "articles/1/comments?sort_by=potatoes",
-        400
-      ).then(({ body: { msg } }) => {
-        expect(msg).toBe("That option is not available");
-      });
-    });
-    it("GET 200 - Return comments in the default direction of sort", () => {
-      return requestApp("get", "articles/1/comments", 200).then(({ body }) => {
-        expect(body.comments).toBeSortedBy("created_at", {
-          descending: true,
+      it("GET 400 - Responds with error if article doesnt exist", () => {
+        return requestApp("get", "articles/dog", 400).then(({ body }) => {
+          expect(body.msg).toBe("Invalid input sintax.");
         });
       });
-    });
-    it("GET 200 - Return comments in selected direction of sort", () => {
-      return requestApp("get", "articles/1/comments?order=asc", 200).then(
-        ({ body }) => {
-          expect(body.comments).toBeSortedBy("created_at", {
-            ascending: true,
+      it("PATCH 200 - Responds with 200 to a patch request", () => {
+        return requestApp("patch", "articles/1", 200, {
+          inc_votes: 1,
+        });
+      });
+      it("PATCH 200 - Responds with the correct article and updated vote count if provided with a positive number", () => {
+        return requestApp("get", "articles/1", 200)
+          .then(({ body }) => {
+            const previousVotes = body.article[0].votes;
+            return previousVotes;
+          })
+          .then((previousVotes) => {
+            const sendObj = {
+              inc_votes: 1,
+            };
+            return requestApp("patch", "articles/1", 200, sendObj).then(
+              ({ body }) => {
+                const newVotes = previousVotes + sendObj.inc_votes;
+                expect(body.article.length).toBe(1);
+                expect(body.article[0].votes).toBe(newVotes);
+              }
+            );
           });
-        }
-      );
-    });
-    it("GET 400 - Return error with incorect direction", () => {
-      return requestApp("get", "articles/1/comments?order=north", 400).then(
-        ({ body: { msg } }) => {
-          expect(msg).toBe("Please select either asc or desc for direction.");
-        }
-      );
+      });
+      it("PATCH 200 - Responds with the correct article and updated vote count if provided with a negative number", () => {
+        return requestApp("get", "articles/1", 200)
+          .then(({ body }) => {
+            const previousVotes = body.article[0].votes;
+            return previousVotes;
+          })
+          .then((previousVotes) => {
+            const sendObj = {
+              inc_votes: -1000,
+            };
+            return requestApp("patch", "articles/1", 200, sendObj).then(
+              ({ body }) => {
+                const newVotes = previousVotes + sendObj.inc_votes;
+                expect(body.article.length).toBe(1);
+                expect(body.article[0].votes).toBe(newVotes);
+              }
+            );
+          });
+      });
+      it("PATCH 400 - Responds with an error if the input is incorrect", () => {
+        const sendObj = { inc_votes: 1 };
+        return requestApp("patch", "articles/b", 400, sendObj).then(
+          ({ body: { msg } }) => {
+            expect(msg).toBe("Invalid input sintax.");
+          }
+        );
+      });
+      it("PATCH 400 - Responds with an error if the req.body is inadequate", () => {
+        const sendObj = { in_votes: "b" };
+        return requestApp("patch", "articles/1", 400, sendObj).then(
+          ({ body: { msg } }) => {
+            expect(msg).toBe("Incorrect value in object.");
+          }
+        );
+      });
+      describe("/api/articles/:article_id/comments", () => {
+        it("POST 201 - Responds with 201 from server with post request", () => {
+          const sendComment = {
+            username: "butter_bridge",
+            body: "this is my comment",
+          };
+          return requestApp("post", "articles/1/comments", 201, sendComment);
+        });
+        it("POST 201 - Responds with 201 from server and returns the created comment", () => {
+          const sendComment = {
+            username: "butter_bridge",
+            body: "this is my comment",
+          };
+          return requestApp(
+            "post",
+            "articles/1/comments",
+            201,
+            sendComment
+          ).then(({ body }) => {
+            expect(body.comment).toEqual(expect.any(Array));
+            expect(body.comment[0]).toHaveProperty("body");
+          });
+        });
+        it("POST 400 - Responds with 400 with incorrect username", () => {
+          const sendComment = {
+            username: "toffee",
+            body: "this is my comment",
+          };
+          return requestApp(
+            "post",
+            "articles/1/comments",
+            400,
+            sendComment
+          ).then(({ body: { msg } }) => {
+            expect(msg).toBe("That user doesn't exist.");
+          });
+        });
+        it("POST 400 - Responds with 400 with no body", () => {
+          const sendComment = {
+            username: "butter_bridge",
+            body: "",
+          };
+          return requestApp(
+            "post",
+            "articles/1/comments",
+            400,
+            sendComment
+          ).then(({ body: { msg } }) => {
+            expect(msg).toBe("Please insert body to comment.");
+          });
+        });
+        it("GET 200 - Responds with 200 for the comments in an article", () => {
+          return requestApp("get", "articles/1/comments", 200);
+        });
+        it("GET 200 - Responds with all comments from an article", () => {
+          return requestApp("get", "articles/1/comments", 200).then(
+            ({ body }) => {
+              expect(body.comments).toEqual(
+                expect.arrayContaining([
+                  expect.objectContaining({
+                    comment_id: expect.any(Number),
+                    votes: expect.any(Number),
+                    created_at: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                  }),
+                ])
+              );
+            }
+          );
+        });
+        it("GET 400 - Incorrect article id", () => {
+          return requestApp("get", "articles/999/comments", 400).then(
+            ({ body: { msg } }) => {
+              expect(msg).toBe("Could not find that article");
+            }
+          );
+        });
+        it("GET 200 - Return comments sorted by created_at", () => {
+          return requestApp(
+            "get",
+            "articles/1/comments?sort_by=created_at",
+            200
+          ).then(({ body }) => {
+            expect(body.comments).toBeSortedBy("created_at", {
+              descending: true,
+            });
+          });
+        });
+        it("GET 200 - Return comments sorted by comment_id", () => {
+          return requestApp(
+            "get",
+            "articles/1/comments?sort_by=comment_id",
+            200
+          ).then(({ body }) => {
+            expect(body.comments).toBeSortedBy("comment_id", {
+              descending: true,
+            });
+          });
+        });
+        it("GET 400 - Return error if the sort_by doesnt exist", () => {
+          return requestApp(
+            "get",
+            "articles/1/comments?sort_by=potatoes",
+            400
+          ).then(({ body: { msg } }) => {
+            expect(msg).toBe("That option is not available");
+          });
+        });
+        it("GET 200 - Return comments in the default direction of sort", () => {
+          return requestApp("get", "articles/1/comments", 200).then(
+            ({ body }) => {
+              expect(body.comments).toBeSortedBy("created_at", {
+                descending: true,
+              });
+            }
+          );
+        });
+        it("GET 200 - Return comments in selected direction of sort", () => {
+          return requestApp("get", "articles/1/comments?order=asc", 200).then(
+            ({ body }) => {
+              expect(body.comments).toBeSortedBy("created_at", {
+                ascending: true,
+              });
+            }
+          );
+        });
+        it("GET 400 - Return error with incorect direction", () => {
+          return requestApp("get", "articles/1/comments?order=north", 400).then(
+            ({ body: { msg } }) => {
+              expect(msg).toBe(
+                "Please select either asc or desc for direction."
+              );
+            }
+          );
+        });
+      });
     });
   });
-  describe.only("/api/comments", () => {
+  describe("/api/comments", () => {
     it("INVALID METHODS /api/comments", () => {
       const invalidMethods = ["put", "post"];
       const promises = invalidMethods.map((method) => {
@@ -431,11 +459,11 @@ describe("/api", () => {
       });
       return Promise.all(promises);
     });
-    it("GET 200 - Responds ok from server", () => {
+    it("PATCH 200 - Responds ok from server", () => {
       const sendObj = {};
       return requestApp("patch", "comments/1", 200, sendObj);
     });
-    it("GET 200 - Responds with the updated comment", () => {
+    it("PATCH 200 - Responds with the updated comment", () => {
       return requestApp("get", "comments/1", 200).then(
         ({ body: { comment } }) => {
           const oldVote = comment[0].votes;
@@ -454,7 +482,7 @@ describe("/api", () => {
         }
       );
     });
-    it("GET 400 - Errors out if id doesnt exist", () => {
+    it("PATCH 400 - Errors out if id doesnt exist", () => {
       const sendObj = { inc_votes: 10 };
       return requestApp("patch", "comments/999", 400, sendObj).then(
         ({ body: { msg } }) => {
@@ -462,13 +490,22 @@ describe("/api", () => {
         }
       );
     });
-    it("GET 400 - Errors out if not a number", () => {
+    it("PATCH 400 - Errors out if not a number", () => {
       const sendObj = { inc_votes: "b" };
       return requestApp("patch", "comments/1", 400, sendObj).then(
         ({ body: { msg } }) => {
           expect(msg).toBe("Invalid input sintax.");
         }
       );
+    });
+    it("DEL 204 - Reponds ok from server", () => {
+      return requestApp("del", "comments/1", 204).then(() => {
+        return requestApp("get", "comments/1", 200).then(
+          ({ body: { comment } }) => {
+            expect(comment.length).toBe(0);
+          }
+        );
+      });
     });
   });
 });
