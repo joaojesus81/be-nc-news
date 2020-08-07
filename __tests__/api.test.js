@@ -112,7 +112,7 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
-    it("GET 200 - Responds with 200 from the server", () => {
+    it.only("GET 200 - Responds with 200 from the server", () => {
       return requestApp("get", "articles", 200);
     });
     it("GET 200 - Responds with an array of articles", () => {
