@@ -6,7 +6,7 @@ const commentsRouter = require("./comments.router");
 const { getAPIJSON } = require("../controllers/api.controller");
 const { errors405s } = require("../errors/");
 
-// apiRouter.route("/").get(getAPIJSON).all(errors405s);
+apiRouter.route("/").get(getAPIJSON).all(errors405s);
 apiRouter.use("/topics", topicsRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/articles", articlesRouter);
