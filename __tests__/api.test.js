@@ -30,8 +30,8 @@ describe("/api", () => {
     return requestApp("get", "", 200);
   });
   it("GET 200 - Returns the JSON with endpoint", () => {
-    return requestApp("get", "", 200).then(({ body: { endpoints } }) => {
-      expect(endpoints).toEqual(expect.any(Object));
+    return requestApp("get", "", 200).then(({ body }) => {
+      expect(body).toEqual(expect.any(Object));
     });
   });
   describe("/api/topics", () => {
