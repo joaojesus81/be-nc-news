@@ -29,7 +29,11 @@ exports.getAComment = (req, res, next) => {
 
 exports.deleteAComment = (req, res, next) => {
   const { comment_id } = req.params;
-  deleteAComment(comment_id).then(() => {
-    res.sendStatus(204);
-  });
+  deleteAComment(comment_id)
+    .then(() => {
+      res.sendStatus(204);
+    })
+    .catch((err) => {
+      next(err);
+    });
 };

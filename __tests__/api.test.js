@@ -1,4 +1,4 @@
-const app = require("../app");
+const { app } = require("../app");
 const request = require("supertest");
 const connection = require("../db/connection");
 
@@ -28,7 +28,6 @@ describe("/api", () => {
   });
   it("GET 200 - Returns the JSON with endpoint", () => {
     return requestApp("get", "", 200).then(({ body: { endpoints } }) => {
-      console.log(endpoints);
       expect(endpoints).toEqual(expect.any(Object));
     });
   });

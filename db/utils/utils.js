@@ -12,7 +12,7 @@ exports.formatDates = (list) => {
       const minutes =
         date.getMinutes() >= 10 ? date.getMinutes() : "0" + date.getMinutes();
       const seconds =
-        date.getSeconds() >= 10 ? date.getSeconds() : date.getSeconds();
+        date.getSeconds() >= 10 ? date.getSeconds() : "0" + date.getSeconds();
       const miliseconds = date.getMilliseconds();
       const convertedTimeStamp = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${miliseconds}Z`;
       article.created_at = convertedTimeStamp;
