@@ -1,9 +1,5 @@
-const connection = require("../../db/connection");
-const fs = require("fs");
+const fs = require("fs/promises");
 
 exports.fetchEndpointJSON = (cb) => {
-  fs.readFile("./endpoints.json", "utf8", (err, data) => {
-    if (err) throw err;
-    cb(null, data);
-  });
+  return fs.readFile("./endpoints.json", "utf8");
 };

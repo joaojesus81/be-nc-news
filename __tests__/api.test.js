@@ -11,6 +11,9 @@ function requestApp(method, path, status = 200, sendObj) {
 }
 
 describe("/api", () => {
+  beforeAll(() => {
+    return connection.seed.run();
+  });
   afterAll(() => {
     return connection.destroy();
   });
@@ -33,7 +36,7 @@ describe("/api", () => {
   });
   describe("/api/topics", () => {
     it("GET 200 - Responds with code 200", () => {
-      return request(app).get("/api/topics").expect(200);
+      return requestApp("get", "topics", 200);
     });
     it("GET 200 - Responds with an array of topics with both properties", () => {
       return request(app)
@@ -112,7 +115,7 @@ describe("/api", () => {
     });
   });
   describe("/api/articles", () => {
-    it.only("GET 200 - Responds with 200 from the server", () => {
+    it("GET 200 - Responds with 200 from the server", () => {
       return requestApp("get", "articles", 200);
     });
     it("GET 200 - Responds with an array of articles", () => {
