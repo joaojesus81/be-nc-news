@@ -7,6 +7,7 @@
     "setup-dbs": "psql -f ./db/setup.sql",
     "migrate-make": "NODE_ENV=test knex migrate:make",
     "seed": "NODE_ENV=test knex seed:run",
+    "seed-dev": "NODE_ENV=development knex seed:run",
     "test": "jest --verbose=false ./__tests__",
     "migrate-latest": "NODE_ENV=production knex migrate:latest",
     "migrate-rollback": "NODE_ENV=production knex migrate:rollback",
