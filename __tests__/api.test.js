@@ -14,6 +14,24 @@ describe("/api", () => {
   afterAll(() => {
     return connection.destroy();
   });
+  it("INVALID METHODS /api/", () => {
+    const invalidMethods = ["put", "post", "patch"];
+    const promises = invalidMethods.map((method) => {
+      return requestApp(method, "", 405).then(({ body: { msg } }) => {
+        expect(msg).toBe("Method not allowed.");
+      });
+    });
+    return Promise.all(promises);
+  });
+  it("GET 200 - Returns 200 response from server", () => {
+    return requestApp("get", "", 200);
+  });
+  it("GET 200 - Returns the JSON with endpoint", () => {
+    return requestApp("get", "", 200).then(({ body: { endpoints } }) => {
+      console.log(endpoints);
+      expect(endpoints).toEqual(expect.any(Object));
+    });
+  });
   describe("/api/topics", () => {
     it("GET 200 - Responds with code 200", () => {
       return request(app).get("/api/topics").expect(200);

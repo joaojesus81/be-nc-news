@@ -5,16 +5,16 @@ exports.formatDates = (list) => {
       const date = new Date(article.created_at);
       const year = date.getFullYear();
       const month =
-        String(date.getMonth()).length === 2
+        date.getMonth() >= 10
           ? date.getMonth() + 1
           : "0" + (date.getMonth() + 1);
-      const day =
-        String(date.getDate()).length === 2
-          ? date.getDate()
-          : "0" + date.getDate();
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const seconds = date.getSeconds();
+      const day = date.getDate() >= 10 ? date.getDate() : "0" + date.getDate();
+      const hours =
+        date.getHours() >= 10 ? date.getHours() : "0" + date.getHours();
+      const minutes =
+        date.getMinutes() >= 10 ? date.getMinutes() : "0" + date.getMinutes();
+      const seconds =
+        date.getSeconds() >= 10 ? date.getSeconds() : date.getSeconds();
       const miliseconds = date.getMilliseconds();
       const convertedTimeStamp = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${miliseconds}Z`;
       article.created_at = convertedTimeStamp;
