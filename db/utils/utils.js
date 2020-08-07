@@ -4,10 +4,8 @@ exports.formatDates = (list) => {
     if (article.created_at) {
       const date = new Date(article.created_at);
       const year = date.getFullYear();
-      const month =
-        date.getMonth() >= 10
-          ? date.getMonth() + 1
-          : "0" + (date.getMonth() + 1);
+      const realMonth = date.getMonth() + 1;
+      const month = realMonth < 10 ? "0" + realMonth : realMonth;
       const day = date.getDate() >= 10 ? date.getDate() : "0" + date.getDate();
       const hours =
         date.getHours() >= 10 ? date.getHours() : "0" + date.getHours();
