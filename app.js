@@ -7,10 +7,6 @@ const { customError, catchAll, PSQLerrors } = require("./api/errors");
 app.get("/", (req, res, next) =>
   res.sendFile(path.join(__dirname, "index.html"))
 );
-<<<<<<< HEAD
-
-=======
->>>>>>> d4caaabe9db762b3dddaaeef54777c56321ed60f
 app.use(express.json());
 app.use("/api", apiRouter);
 app.use(PSQLerrors);
