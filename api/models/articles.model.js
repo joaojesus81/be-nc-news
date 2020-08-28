@@ -38,7 +38,14 @@ exports.fetchAllArticles = ({
       ) {
         if (order === "desc" || order === "asc") {
           return connection
-            .select("articles.*")
+            .select(
+              "articles.author",
+              "title",
+              "articles.article_id",
+              "topic",
+              "articles.created_at",
+              "articles.votes"
+            )
             .from("articles")
             .leftJoin("comments", "articles.article_id", "comments.article_id")
             .groupBy("articles.article_id")
@@ -130,7 +137,7 @@ exports.fetchAllCommentsOfArticleId = (
 ) => {
   if (order === "desc" || order === "asc") {
     return connection
-      .select()
+      .select("comment_id", "votes", "created_at", "author", "body")
       .from("comments")
       .where("article_id", article_id)
       .modify((query) => {

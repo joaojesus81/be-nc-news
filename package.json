@@ -14,7 +14,7 @@
     "seed:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex seed:run",
     "migrate-latest:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:latest",
     "migrate-rollback:prod": "NODE_ENV=production DB_URL=$(heroku config:get DATABASE_URL) knex migrate:rollback",
-    "start": "node listen.js"
+    "start": "nodemon listen.js"
   },
   "repository": {
     "type": "git",
@@ -28,9 +28,10 @@
   },
   "homepage": "https://github.com/northcoders/be-nc-news#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "knex": "^0.21.2",
-    "pg": "^8.3.0",
-    "express": "^4.17.1"
+    "nodemon": "^2.0.4",
+    "pg": "^8.3.0"
   },
   "devDependencies": {
     "express": "^4.17.1",
