@@ -6,6 +6,7 @@ const { customError, catchAll, PSQLerrors } = require("./api/errors");
 const cors = require("cors");
 
 app.use(cors());
+app.use(allowCrossDomain);
 
 app.get("/", (req, res, next) =>
   res.sendFile(path.join(__dirname, "index.html"))
