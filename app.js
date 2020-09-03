@@ -3,6 +3,9 @@ const app = express();
 const path = require("path");
 const apiRouter = require("./api/routers/api.router");
 const { customError, catchAll, PSQLerrors } = require("./api/errors");
+const cors = require("cors");
+
+app.use(cors());
 
 app.get("/", (req, res, next) =>
   res.sendFile(path.join(__dirname, "index.html"))
